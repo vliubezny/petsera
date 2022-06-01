@@ -1,0 +1,32 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  bin = "./build/petsera"
+  cmd = "make build"
+  delay = 1000
+  exclude_dir = ["ui", "tmp", "vendor", "build", "scripts"]
+  exclude_file = []
+  exclude_regex = []
+  exclude_unchanged = true
+  follow_symlink = false
+  full_bin = ""
+  include_dir = []
+  include_ext = ["go"]
+  kill_delay = "1s"
+  log = "build-errors.log"
+  send_interrupt = true
+  stop_on_error = false
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true

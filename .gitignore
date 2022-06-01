@@ -1,0 +1,7 @@
+build/
+*.out
+*.test
+.vscode
+dist/
+tmp/
+.env
