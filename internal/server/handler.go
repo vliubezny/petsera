@@ -107,3 +107,16 @@ func (srv *Server) getImageHandler(c echo.Context) error {
 
 	return c.Stream(http.StatusOK, contentType, data)
 }
+
+func (srv *Server) getHealthHandler(c echo.Context) error {
+	if err := srv.checker.Check(c.Request().Context()); err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"status": "UNHEALTHY",
+			"error":  err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"status": "HEALTHY",
+	})
+}

@@ -69,3 +69,11 @@ func (s *GCS) Delete(ctx context.Context, key string) error {
 
 	return nil
 }
+
+func (s *GCS) Check(ctx context.Context) error {
+	if _, err := s.cli.Bucket(s.bucket).Attrs(ctx); err != nil {
+		return fmt.Errorf("GCS check failed: %w", err)
+	}
+
+	return nil
+}

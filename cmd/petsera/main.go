@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/vliubezny/petsera/internal/config"
+	"github.com/vliubezny/petsera/internal/health"
 	"github.com/vliubezny/petsera/internal/server"
 	"github.com/vliubezny/petsera/internal/storage/gcs"
 	"github.com/vliubezny/petsera/internal/storage/postgres"
@@ -42,6 +43,8 @@ func main() {
 		logrus.WithError(err).Fatal("failed to init file storage")
 	}
 
+	checker := health.SetupChecks(pgStorage, fileStorage)
+
 	// assets, err := ui.LoadFileSystem()
 	// if err != nil {
 	// 	log.Fatalf("failed to access embedded file system: %v", err)
@@ -53,6 +56,7 @@ func main() {
 		// Statics:     assets,
 		AnnouncementStorage: pgStorage,
 		FileStorage:         fileStorage,
+		Checker:             checker,
 	})
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to create server")

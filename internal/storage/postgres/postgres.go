@@ -124,3 +124,11 @@ func (p PG) InTx(ctx context.Context, action func(s storage.AnnouncementStorage)
 
 	return nil
 }
+
+func (p PG) Check(ctx context.Context) error {
+	if err := p.dbx.PingContext(ctx); err != nil {
+		return fmt.Errorf("postgres check failed: %w", err)
+	}
+
+	return nil
+}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/vliubezny/petsera/internal/health"
 	"github.com/vliubezny/petsera/internal/storage"
 )
 
@@ -20,6 +21,7 @@ type Config struct {
 	FileStorage         storage.FileStorage
 	Statics             http.FileSystem
 	DevMode             bool
+	Checker             health.Checker
 }
 
 type Server struct {
@@ -27,6 +29,7 @@ type Server struct {
 	address       string
 	announcements storage.AnnouncementStorage
 	files         storage.FileStorage
+	checker       health.Checker
 }
 
 func New(cfg Config) (*Server, error) {
@@ -50,10 +53,13 @@ func New(cfg Config) (*Server, error) {
 		address:       net.JoinHostPort(host, cfg.Port),
 		announcements: cfg.AnnouncementStorage,
 		files:         cfg.FileStorage,
+		checker:       cfg.Checker,
 	}
 
-	assetHandler := http.FileServer(cfg.Statics)
-	e.GET("/*", echo.WrapHandler(assetHandler))
+	e.GET("/health", srv.getHealthHandler)
+
+	// assetHandler := http.FileServer(cfg.Statics)
+	// e.GET("/*", echo.WrapHandler(assetHandler))
 
 	e.GET("/api/announcements", srv.getAnnouncementsHandler)
 	e.POST("/api/announcements", srv.uploadHandler)

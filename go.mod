@@ -17,6 +17,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/testcontainers/testcontainers-go v0.13.0
 	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 )
 
 require (
