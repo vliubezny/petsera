@@ -4,14 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
+	"github.com/avast/retry-go"
 	"github.com/golang-migrate/migrate/v4"
 	migratep "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/sirupsen/logrus"
 
 	// init file source
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -33,8 +35,14 @@ func MustSetupDB(dsn string, maxOpenConns, maxIdleConns int, enableMigration boo
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
 
-	if err := db.PingContext(context.Background()); err != nil {
-		logrus.WithError(err).Fatal("failed to ping postgres")
+	if err := retry.Do(func() error {
+		err := db.PingContext(context.Background())
+		if err != nil {
+			logrus.WithError(err).Error("ping failed")
+		}
+		return err
+	}, retry.Attempts(60), retry.Delay(time.Second)); err != nil {
+		logrus.WithError(err).Fatal("failed to wait for postgres")
 	}
 
 	if !enableMigration {
@@ -80,7 +88,7 @@ func checkVersion(m *migrate.Migrate) {
 
 func newDSN(config Config) string {
 	return fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		config.Host,
 		config.Port,
 		config.User,

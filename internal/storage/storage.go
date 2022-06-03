@@ -14,7 +14,7 @@ var (
 
 type FileStorage interface {
 	Put(ctx context.Context, key, contentType string, data io.Reader) error
-	Get(ctx context.Context, key string) (io.ReadCloser, string, error)
+	Get(ctx context.Context, key string) (data io.ReadCloser, contentType string, err error)
 	Delete(ctx context.Context, key string) error
 }
 

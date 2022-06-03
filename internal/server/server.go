@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"net"
 	"net/http"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -19,6 +19,7 @@ type Config struct {
 	AnnouncementStorage storage.AnnouncementStorage
 	FileStorage         storage.FileStorage
 	Statics             http.FileSystem
+	DevMode             bool
 }
 
 type Server struct {
@@ -31,6 +32,7 @@ type Server struct {
 func New(cfg Config) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
+	e.Debug = cfg.DevMode
 
 	echologrus.Logger = logrus.New()
 	e.Logger = echologrus.GetEchoLogger()
@@ -38,9 +40,14 @@ func New(cfg Config) (*Server, error) {
 
 	e.Use(middleware.Recover())
 
+	var host string
+	if cfg.DevMode {
+		host = "127.0.0.1"
+	}
+
 	srv := &Server{
 		e:             e,
-		address:       fmt.Sprintf(":%s", cfg.Port),
+		address:       net.JoinHostPort(host, cfg.Port),
 		announcements: cfg.AnnouncementStorage,
 		files:         cfg.FileStorage,
 	}

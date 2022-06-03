@@ -7,7 +7,9 @@ PID_LIST=""
 trap 'kill $PID_LIST' SIGINT
 
 echo "Start postgres"
-docker run -i --rm --name petseradb -p "127.0.0.1:5432:5432" -e POSTGRES_USER=petsera -e POSTGRES_PASSWORD=root postgis/postgis:13-master & pid=$!
+docker run -i --rm --name petseradb -p "127.0.0.1:5432:5432" \
+    -e POSTGRES_USER=petsera -e POSTGRES_PASSWORD=root \
+    -e POSTGRES_DB=petsera postgis/postgis:13-master & pid=$!
 PID_LIST+=" $pid"
 
 echo "Start backend"

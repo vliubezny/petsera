@@ -11,6 +11,7 @@ import (
 
 	"github.com/vliubezny/petsera/internal/config"
 	"github.com/vliubezny/petsera/internal/server"
+	"github.com/vliubezny/petsera/internal/storage/gcs"
 	"github.com/vliubezny/petsera/internal/storage/postgres"
 )
 
@@ -34,8 +35,12 @@ func main() {
 		EnableMigration: cfg.DBEnableMigration,
 		MigrationsDir:   cfg.DBMigrations,
 	})
-
 	defer pgStorage.Close()
+
+	fileStorage, err := gcs.NewGCS(ctx, cfg.GCSBucket)
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to init file storage")
+	}
 
 	// assets, err := ui.LoadFileSystem()
 	// if err != nil {
@@ -43,9 +48,11 @@ func main() {
 	// }
 
 	srv, err := server.New(server.Config{
-		Port: cfg.HTTPPort,
+		DevMode: cfg.DevMode,
+		Port:    cfg.HTTPPort,
 		// Statics:     assets,
 		AnnouncementStorage: pgStorage,
+		FileStorage:         fileStorage,
 	})
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to create server")
