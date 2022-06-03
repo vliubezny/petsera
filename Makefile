@@ -6,6 +6,9 @@ MAIN_PKG := ./cmd/$(PROJECT)
 
 GOBIN := $(shell go env GOPATH)/bin
 
+MIGRATE_NAME := migrate
+MIGRATE_VERSION := v4.14.1
+
 default: build
 
 .PHONY: build
@@ -35,6 +38,10 @@ test: GO_TEST_FLAGS := -race
 test:
 	go test -v -mod=vendor $(GO_TEST_FLAGS) $(GO_TEST_TAGS) ./...
 
+.PHONY: fulltest
+fulltest: GO_TEST_TAGS := --tags=integration
+fulltest: test
+
 .PHONY: vendor
 vendor:
 	go mod tidy
@@ -43,3 +50,22 @@ vendor:
 .PHONY: run
 run:
 	@./scripts/dev-server.sh
+
+.PHONY: sandbox-up
+sandbox-up:
+	@docker-compose -f scripts/sandbox.yml up -d
+
+.PHONY: sandbox-down
+sandbox-down:
+	@docker-compose -f scripts/sandbox.yml down
+
+.PHONY: install-migrate
+install-migrate:
+	@echo INSTALLING $(MIGRATE_NAME) for MacOS
+	@echo 'Check https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md for details'
+	brew install golang-migrate
+	@echo DONE
+
+.PHONY: new-migration
+new-migration:
+	migrate create -ext sql -dir scripts/migrations/postgres -seq $(NAME)

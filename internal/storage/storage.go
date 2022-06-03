@@ -19,8 +19,8 @@ type FileStorage interface {
 }
 
 type AnnouncementStorage interface {
-	Create(ctx context.Context, doc *model.Announcement) error
-	GetAll(ctx context.Context) ([]*model.Announcement, error)
+	Create(ctx context.Context, announcement *model.Announcement) error
+	GetAll(ctx context.Context, filter model.Filter) ([]*model.Announcement, error)
 	Delete(ctx context.Context, id string) error
-	InTx(txFn func(tx AnnouncementStorage) error) error
+	InTx(ctx context.Context, txFn func(s AnnouncementStorage) error) error
 }

@@ -5,38 +5,44 @@ import (
 	"fmt"
 	"net/http"
 
+	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/vliubezny/petsera/internal/storage"
 )
 
 type Config struct {
-	Port        string
-	AnnouncementStorage  storage.AnnouncementStorage
-	FileStorage storage.FileStorage
-	Statics     http.FileSystem
+	Port                string
+	AnnouncementStorage storage.AnnouncementStorage
+	FileStorage         storage.FileStorage
+	Statics             http.FileSystem
 }
 
 type Server struct {
-	e          *echo.Echo
-	address    string
-	announcements       storage.AnnouncementStorage
-	files      storage.FileStorage
+	e             *echo.Echo
+	address       string
+	announcements storage.AnnouncementStorage
+	files         storage.FileStorage
 }
 
 func New(cfg Config) (*Server, error) {
 	e := echo.New()
 	e.HideBanner = true
 
-	e.Use(middleware.Logger())
+	echologrus.Logger = logrus.New()
+	e.Logger = echologrus.GetEchoLogger()
+	e.Use(echologrus.Middleware())
+
 	e.Use(middleware.Recover())
 
 	srv := &Server{
-		e:          e,
-		address:    fmt.Sprintf(":%s", cfg.Port),
-		announcements:       cfg.AnnouncementStorage,
-		files:      cfg.FileStorage,
+		e:             e,
+		address:       fmt.Sprintf(":%s", cfg.Port),
+		announcements: cfg.AnnouncementStorage,
+		files:         cfg.FileStorage,
 	}
 
 	assetHandler := http.FileServer(cfg.Statics)

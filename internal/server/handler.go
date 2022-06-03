@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/segmentio/ksuid"
+	"github.com/sirupsen/logrus"
 
 	"github.com/vliubezny/petsera/internal/model"
 	"github.com/vliubezny/petsera/internal/storage"
@@ -23,7 +23,7 @@ func (srv *Server) uploadHandler(c echo.Context) error {
 
 	var req AnnouncementRequest
 	if err := json.Unmarshal([]byte(data), &req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "fail to parse'data'").SetInternal(err)
+		return echo.NewHTTPError(http.StatusBadRequest, "fail to parse 'data'").SetInternal(err)
 	}
 
 	if err := req.Validate(); err != nil {
@@ -40,26 +40,25 @@ func (srv *Server) uploadHandler(c echo.Context) error {
 	}
 	defer src.Close()
 
-	imageContentType:= file.Header.Get("Content-Type")
-	
+	imageContentType := file.Header.Get("Content-Type")
 
-	doc := &model.Announcement{
-		ID:          ksuid.New().String(),
-		Text: req.Text,
-		Position: model.Location(req.Position),
-		CreatedAt:   time.Now().UTC(),
+	announcement := &model.Announcement{
+		ID:        ksuid.New().String(),
+		Text:      req.Text,
+		Position:  model.Location(req.Position),
+		CreatedAt: time.Now().UTC(),
 	}
 
-	doc.ImageURL = fmt.Sprintf("/api/images/%s", doc.ID)
+	announcement.ImageURL = fmt.Sprintf("/api/images/%s", announcement.ID)
 
-	log.Printf("uploading image: %+v", doc)
+	logrus.Infof("save announcement: %+v", announcement)
 
-	if err := srv.announcements.InTx(func(tx storage.AnnouncementStorage) error {
-		if err := tx.Create(c.Request().Context(), doc); err != nil {
+	if err := srv.announcements.InTx(c.Request().Context(), func(tx storage.AnnouncementStorage) error {
+		if err := tx.Create(c.Request().Context(), announcement); err != nil {
 			return err
 		}
 
-		if err := srv.files.Put(c.Request().Context(), doc.ID, imageContentType, src); err != nil {
+		if err := srv.files.Put(c.Request().Context(), announcement.ID, imageContentType, src); err != nil {
 			return err
 		}
 
@@ -68,11 +67,20 @@ func (srv *Server) uploadHandler(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, doc)
+	return c.JSON(http.StatusOK, announcement)
 }
 
 func (srv *Server) getAnnouncementsHandler(c echo.Context) error {
-	docs, err := srv.announcements.GetAll(c.Request().Context())
+	var filter Filter
+	if err := c.Bind(&filter); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "fail to parse filter").SetInternal(err)
+	}
+
+	if err := filter.Validate(); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err).SetInternal(err)
+	}
+
+	docs, err := srv.announcements.GetAll(c.Request().Context(), model.Filter(filter))
 	if err != nil {
 		return err
 	}

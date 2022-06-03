@@ -1,37 +1,41 @@
 package config
 
 import (
-	"log"
 	"os"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	HTTPPort       string `env:"PETSERA_HTTP_PORT" envDefault:"8080"`
+	HTTPPort string `env:"PETSERA_HTTP_PORT" envDefault:"8080"`
 
-	
-	GCPBucket           string `env:"PETSERA_BUCKET,required"`
+	GCPBucket string `env:"PETSERA_BUCKET,required"`
 
-	DBHost     string `env:"PETSERA_DB_HOST,required"`
-	DBPort     string `env:"PETSERA_DB_PORT" envDefault:"5432"`
-	DBUser     string `env:"PETSERA_DB_USER,required"`
-	DBPassword string `env:"PETSERA_DB_PASSWORD"`
-	DBName     string `env:"PETSERA_DB_NAME" envDefault:"petsera"`
+	DBHost               string `env:"PETSERA_DB_HOST,required"`
+	DBPort               string `env:"PETSERA_DB_PORT" envDefault:"5432"`
+	DBUser               string `env:"PETSERA_DB_USER,required"`
+	DBPassword           string `env:"PETSERA_DB_PASSWORD,required"`
+	DBName               string `env:"PETSERA_DB_NAME" envDefault:"petsera"`
+	DBMaxOpenConnections int    `env:"PETSERA_MAX_OPEN_CONNECTIONS" envDefault:"0"`
+	DBMaxIdleConnections int    `env:"PETSERA_MAX_IDLE_CONNECTIONS" envDefault:"5"`
+	DBEnableMigration    bool   `env:"PETSERA_ENABLE_MIGRATION" envDefault:"true"`
+	DBMigrations         string `env:"PETSERA_MIGRATIONS" envDefault:"scripts/migrations/postgres"`
 }
 
 func MustLoad() Config {
 	if err := godotenv.Load(); err != nil {
 		if !os.IsNotExist(err) {
-			log.Fatalf("failed to load .env file: %v", err)
+			logrus.WithError(err).Fatal("failed to load .env file")
 		}
-		log.Println("ignoring missing .env file")
+		logrus.Warn("ignoring missing .env file")
 	}
 
 	cfg := Config{}
 	if err := env.Parse(&cfg); err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		logrus.WithError(err).Fatal("failed to load config")
 	}
 
 	return cfg
