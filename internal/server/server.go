@@ -58,8 +58,8 @@ func New(cfg Config) (*Server, error) {
 
 	e.GET("/health", srv.getHealthHandler)
 
-	// assetHandler := http.FileServer(cfg.Statics)
-	// e.GET("/*", echo.WrapHandler(assetHandler))
+	assetHandler := http.FileServer(cfg.Statics)
+	e.GET("/*", echo.WrapHandler(assetHandler))
 
 	e.GET("/api/announcements", srv.getAnnouncementsHandler)
 	e.POST("/api/announcements", srv.uploadHandler)

@@ -14,6 +14,7 @@ import (
 	"github.com/vliubezny/petsera/internal/server"
 	"github.com/vliubezny/petsera/internal/storage/gcs"
 	"github.com/vliubezny/petsera/internal/storage/postgres"
+	"github.com/vliubezny/petsera/ui"
 )
 
 func main() {
@@ -45,15 +46,15 @@ func main() {
 
 	checker := health.SetupChecks(pgStorage, fileStorage)
 
-	// assets, err := ui.LoadFileSystem()
-	// if err != nil {
-	// 	log.Fatalf("failed to access embedded file system: %v", err)
-	// }
+	assets, err := ui.LoadFileSystem()
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to access embedded file system")
+	}
 
 	srv, err := server.New(server.Config{
-		DevMode: cfg.DevMode,
-		Port:    cfg.HTTPPort,
-		// Statics:     assets,
+		DevMode:             cfg.DevMode,
+		Port:                cfg.HTTPPort,
+		Statics:             assets,
 		AnnouncementStorage: pgStorage,
 		FileStorage:         fileStorage,
 		Checker:             checker,
