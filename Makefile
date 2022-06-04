@@ -4,6 +4,10 @@ OUT := $(OUT_DIR)/$(PROJECT)
 DIST_DIR := ./dist
 MAIN_PKG := ./cmd/$(PROJECT)
 
+GCP_PROJECT_ID := petsera
+DOCKER_REGISTRY := europe-north1-docker.pkg.dev/$(GCP_PROJECT_ID)/petsera/app
+TAG ?= latest
+
 GOBIN := $(shell go env GOPATH)/bin
 
 MIGRATE_NAME := migrate
@@ -27,6 +31,14 @@ linux:
 	@echo BUILDING $(LINUX_OUT)
 	CGO_ENABLED=0 go build -mod=vendor -o $(LINUX_OUT) $(MAIN_PKG)
 	@echo DONE
+
+.PHONY: image
+image:
+	docker build -t $(DOCKER_REGISTRY):$(TAG) -f scripts/Dockerfile .
+
+.PHONY: push
+push:
+	docker push $(DOCKER_REGISTRY):$(TAG)
 
 .PHONY: clean
 clean:
