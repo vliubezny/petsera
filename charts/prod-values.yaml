@@ -1,0 +1,13 @@
+image:
+  repository: europe-north1-docker.pkg.dev/petsera/petsera/app
+
+ingress:
+  annotations:
+    "kubernetes.io/ingress.global-static-ip-name": "petsera-public-ip"
+
+config:
+  bucket: "petsera-data"
+  db:
+    connectionName: "petsera:europe-north1:petsera-postgres"
+    name: "petsera"
+    user: "postgres"

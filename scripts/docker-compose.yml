@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  petsera:
+    image: europe-north1-docker.pkg.dev/petsera/petsera/app:latest
+    container_name: petsera
+    restart: always
+    environment:
+      - PETSERA_DB_HOST=sql-proxy
+      - PETSERA_DB_PORT=5432
+      - PETSERA_ENABLE_MIGRATION=false
+      - PETSERA_DB_NAME
+      - PETSERA_DB_USER
+      - PETSERA_DB_PASSWORD
+      - PETSERA_BUCKET
+      - PETSERA_GOOGLE_API_KEY
+      - GOOGLE_APPLICATION_CREDENTIALS=/petsera.key.json
+    ports:
+      - "8080:80"
+    volumes:
+      - ${PETSERA_KEY:-../petsera-dev.key.json}:/petsera.key.json:ro
+
+  # petsera-db:
+  #   image: postgis/postgis:13-master
+  #   container_name: petsera-db
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_DB=petsera
+  #     - POSTGRES_USER=petsera
+  #     - POSTGRES_PASSWORD=root
+  #   ports:
+  #     - "5432:5432"
+
+  sql-proxy:
+    image: gcr.io/cloudsql-docker/gce-proxy:1.30.1
+    container_name: sql-proxy
+    restart: always
+    command:
+      [
+        "/cloud_sql_proxy",
+        "-instances=petsera:europe-north1:petsera-postgres=tcp:0.0.0.0:5432",
+        "-credential_file=/config",
+      ]
+    volumes:
+      - ${SQL_PROXY_KEY:-../local-sql.key.json}:/config:ro
+    ports:
+      - "5432:5432"
+
+  # pgadmin:
+  #   container_name: pgadmin4
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: root
+  #   ports:
+  #     - "5050:80"

@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "petsera.fullname" . }}
+  labels:
+    {{- include "petsera.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "petsera.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "petsera.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: cloud-sql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.30.1
+          command:
+            - "/cloud_sql_proxy"
+            - "-ip_address_types=PRIVATE"
+            - "-instances={{ .Values.config.db.connectionName }}=tcp:5432"
+          securityContext:
+            runAsNonRoot: true
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: PETSERA_DB_HOST
+              value: localhost
+            - name: PETSERA_DB_PORT
+              value: "5432"
+            - name: PETSERA_DB_NAME
+              value: "{{ .Values.config.db.name }}"
+            - name: PETSERA_DB_USER
+              value: "{{ .Values.config.db.user }}"
+            - name: PETSERA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "petsera.fullname" . }}
+                  key: dbPassword
+            - name: PETSERA_ENABLE_MIGRATION
+              value: "{{ .Values.config.db.enableMigration }}"
+            - name: PETSERA_BUCKET
+              value: "{{ .Values.config.bucket }}"
+            - name: PETSERA_GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "petsera.fullname" . }}
+                  key: mapsAPIKey
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

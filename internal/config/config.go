@@ -12,7 +12,7 @@ import (
 type Config struct {
 	DevMode bool `env:"PETSERA_DEV_MODE" envDefault:"false"`
 
-	HTTPPort string `env:"PETSERA_HTTP_PORT" envDefault:"8080"`
+	HTTPPort string `env:"PETSERA_HTTP_PORT" envDefault:"80"`
 
 	GCSBucket    string `env:"PETSERA_BUCKET,required"`
 	GoogleAPIKey string `env:"PETSERA_GOOGLE_API_KEY,required"`

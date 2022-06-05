@@ -63,13 +63,13 @@ vendor:
 run:
 	@./scripts/dev-server.sh
 
-.PHONY: sandbox-up
-sandbox-up:
-	@docker-compose -f scripts/sandbox.yml up -d
+.PHONY: compose-up
+compose-up:
+	@env $$(cat ./cloud.local.env | grep -Ev '^#' | xargs) docker-compose -f scripts/docker-compose.yml up -d
 
-.PHONY: sandbox-down
-sandbox-down:
-	@docker-compose -f scripts/sandbox.yml down
+.PHONY: compose-down
+compose-down:
+	@docker-compose -f scripts/docker-compose.yml down
 
 .PHONY: install-migrate
 install-migrate:
@@ -81,3 +81,18 @@ install-migrate:
 .PHONY: new-migration
 new-migration:
 	migrate create -ext sql -dir scripts/migrations/postgres -seq $(NAME)
+
+.PHONY: migrate
+migrate:
+	@echo Running migration for Cloud SQL
+	@set -a && . ./cloud.local.env \
+	&& migrate -database "postgres://$$PETSERA_DB_USER:$$PETSERA_DB_PASSWORD@localhost:5432/$$PETSERA_DB_NAME?sslmode=disable" \
+		-path scripts/migrations/postgres up
+
+.PHONY: deploy
+deploy:
+	helm upgrade --install -f ./charts/prod-values.yaml \
+		--set config.mapsAPIKey=$$(gcloud secrets versions access latest --secret=maps-api-key-prod) \
+		--set config.db.password=$$(gcloud secrets versions access latest --secret=petsera-db-password) \
+		--set image.pullPolicy=Always --set image.tag=$(TAG) \
+		petsera ./charts/petsera

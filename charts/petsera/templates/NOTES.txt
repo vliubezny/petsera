@@ -1,0 +1,3 @@
+Get the application URL by running these command:
+
+echo http://$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.status.loadBalancer.ingress[0].ip}" ingress {{ include "petsera.fullname" . }})/
