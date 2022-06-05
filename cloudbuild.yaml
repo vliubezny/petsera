@@ -1,24 +1,25 @@
 steps:
-  # - id: build-image
-  #   name: gcr.io/cloud-builders/docker
-  #   entrypoint: make
-  #   args: ["image", "push"]
+  - id: build-image
+    name: gcr.io/cloud-builders/docker
+    entrypoint: make
+    args: ["image", "push"]
 
-  # - id: "migrate-db"
-  #   name: "migrate/migrate:v4.14.1"
-  #   secretEnv:
-  #     - DATABASE_PASS
-  #   entrypoint: /bin/sh
-  #   args:
-  #     - "-ce"
-  #     - |
-  #       apk add wget
-  #       wget -q https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy
-  #       chmod +x /usr/local/bin/cloud_sql_proxy
-  #       cloud_sql_proxy -instances=${_INSTANCE_CONNECTION_NAME}=tcp:5432 & sleep 2;
-  #       migrate -database "postgres://${_DATABASE_USER}:$${DATABASE_PASS}@localhost:5432/${_DATABASE_NAME}?sslmode=disable" \
-  #         -path scripts/migrations/postgres up
-  #       echo "Migration completed successfully"
+  - id: "migrate-db"
+    name: "migrate/migrate:v4.14.1"
+    secretEnv:
+      - DATABASE_PASS
+    entrypoint: /bin/sh
+    args:
+      - "-ce"
+      - |
+        apk add wget
+        wget -q https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/local/bin/cloud_sql_proxy
+        chmod +x /usr/local/bin/cloud_sql_proxy
+        cloud_sql_proxy -instances=${_INSTANCE_CONNECTION_NAME}=tcp:5432 & sleep 2;
+        migrate -database "postgres://${_DATABASE_USER}:$${DATABASE_PASS}@localhost:5432/${_DATABASE_NAME}?sslmode=disable" \
+          -path scripts/migrations/postgres up
+        echo "Migration completed successfully"
+    waitFor: ["build-image"]
 
   - id: "deploy-chart"
     name: "gcr.io/$PROJECT_ID/helm"
@@ -37,6 +38,7 @@ steps:
           --set config.db.password=$${DATABASE_PASS} \
           --set image.pullPolicy=Always --set image.tag=latest \
           petsera ./charts/petsera
+    waitFor: ["migrate-db"]
 
 options:
   dynamic_substitutions: true
