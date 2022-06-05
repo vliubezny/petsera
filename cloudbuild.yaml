@@ -23,8 +23,8 @@ steps:
   - id: "deploy-chart"
     name: "gcr.io/$PROJECT_ID/helm"
     env:
-      - "CLOUDSDK_COMPUTE_ZONE=europe-north1"
-      - "CLOUDSDK_CONTAINER_CLUSTER=petsera"
+      - "CLOUDSDK_COMPUTE_ZONE=${_ZONE_NAME}"
+      - "CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER}"
     secretEnv:
       - DATABASE_PASS
       - MAPS_API_KEY
@@ -45,6 +45,8 @@ substitutions:
   _DATABASE_USER: postgres
   _DATABASE_NAME: petsera
   _INSTANCE_CONNECTION_NAME: ${PROJECT_ID}:europe-north1:petsera-postgres
+  _CLUSTER: petsera
+  _ZONE_NAME: europe-north1-c
 
 availableSecrets:
   secretManager:
