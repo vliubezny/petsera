@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -119,4 +121,28 @@ func (srv *Server) getHealthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"status": "HEALTHY",
 	})
+}
+
+func (srv *Server) indexHandler(frontendCfg map[string]any, statics http.FileSystem) (echo.HandlerFunc, error) {
+	cfg, err := json.Marshal(frontendCfg)
+	if err != nil {
+		return nil, fmt.Errorf("fail to marshal frontend config: %w", err)
+	}
+
+	f, err := statics.Open("index.html")
+	if err != nil {
+		return nil, fmt.Errorf("fail to open index.html: %w", err)
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return nil, fmt.Errorf("fail to read index.html: %w", err)
+	}
+
+	index := strings.Replace(string(data), "__APP_CONFIG__", string(cfg), 1)
+
+	return func(c echo.Context) error {
+		return c.HTML(http.StatusOK, index)
+	}, nil
 }

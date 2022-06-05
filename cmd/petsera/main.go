@@ -58,6 +58,9 @@ func main() {
 		AnnouncementStorage: pgStorage,
 		FileStorage:         fileStorage,
 		Checker:             checker,
+		FrontendConfig: map[string]any{
+			"mapsAPIKey": cfg.GoogleAPIKey,
+		},
 	})
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to create server")

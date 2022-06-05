@@ -22,6 +22,7 @@ type Config struct {
 	Statics             http.FileSystem
 	DevMode             bool
 	Checker             health.Checker
+	FrontendConfig      map[string]any
 }
 
 type Server struct {
@@ -57,6 +58,13 @@ func New(cfg Config) (*Server, error) {
 	}
 
 	e.GET("/health", srv.getHealthHandler)
+
+	index, err := srv.indexHandler(cfg.FrontendConfig, cfg.Statics)
+	if err != nil {
+		return nil, err
+	}
+
+	e.GET("/", index)
 
 	assetHandler := http.FileServer(cfg.Statics)
 	e.GET("/*", echo.WrapHandler(assetHandler))
