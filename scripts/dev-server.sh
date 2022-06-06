@@ -16,10 +16,10 @@ echo "Start backend"
 air & pid=$!
 PID_LIST+=" $pid"
 
-# echo "Start frontend"
-# cd ui && npm run dev & pid=$!
-# PID_LIST+=" $pid"
-# cd ..
+echo "Start frontend"
+cd ui && npm run dev & pid=$!
+PID_LIST+=" $pid"
+cd ..
 
 wait $PID_LIST
 

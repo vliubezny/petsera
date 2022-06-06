@@ -59,7 +59,7 @@ func main() {
 		FileStorage:         fileStorage,
 		Checker:             checker,
 		FrontendConfig: map[string]any{
-			"mapsAPIKey": cfg.GoogleAPIKey,
+			"apiKey": cfg.GoogleAPIKey,
 		},
 	})
 	if err != nil {
