@@ -87,7 +87,7 @@ func (srv *Server) getAnnouncementsHandler(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, docs)
+	return c.JSON(http.StatusOK, ToAnnouncementResponses(docs))
 }
 
 func (srv *Server) getImageHandler(c echo.Context) error {

@@ -16,10 +16,7 @@ const props = defineProps({
     },
   },
   selectable: {
-    type: Object,
-    default() {
-      return null;
-    },
+    type: Boolean,
   },
 });
 
@@ -48,9 +45,14 @@ const updateMarkers = () => {
       position: m.position,
       // @ts-ignore
       label: m.title,
+      // @ts-ignore
+      icon: m.selected
+        ? "https://maps.gstatic.com/mapfiles/ms2/micons/purple-dot.png"
+        : "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
     });
     marker.addListener("click", () => {
-      emit("marker-selected", m);
+      // @ts-ignore
+      emit("marker-selected", m.id);
     });
     return marker;
   });
@@ -60,15 +62,12 @@ const updateMarkers = () => {
 watch(props.markers, updateMarkers);
 
 watch(
-  () => props.selectable.value,
+  () => props.selectable,
   (selectable) => {
-    console.log("sel", selectable);
     if (!selectable && currentPosition) {
       clusterer.removeMarker(currentPosition);
       currentPosition = null;
     }
-
-    // gmap.setOptions({ draggableCursor: selectable ? "pointer" : "hand" });
   }
 );
 
@@ -88,8 +87,7 @@ onMounted(() => {
     updateMarkers();
 
     gmap.addListener("click", (e) => {
-      console.log("click");
-      if (!props.selectable.value) {
+      if (!props.selectable) {
         return;
       }
 
@@ -98,12 +96,11 @@ onMounted(() => {
       }
 
       const position = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-      console.log(position);
       const marker = new google.maps.Marker({
         position,
         title: "New position",
+        icon: "https://maps.gstatic.com/mapfiles/ms2/micons/purple-dot.png",
       });
-      marker.setIcon("https://www.google.com/mapfiles/marker_green.png");
       clusterer.addMarker(marker);
 
       currentPosition = marker;

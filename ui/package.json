@@ -15,6 +15,9 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.14.2",
     "@googlemaps/markerclusterer": "^2.0.6",
+    "axios": "^0.27.2",
+    "lodash": "^4.17.21",
+    "luxon": "^2.4.0",
     "pinia": "^2.0.13",
     "vue": "^3.2.33"
   },
@@ -22,7 +25,10 @@
     "@cypress/vite-dev-server": "^2.2.3",
     "@cypress/vue": "^3.1.2",
     "@rushstack/eslint-patch": "^1.1.0",
+    "@tailwindcss/forms": "^0.5.2",
+    "@tailwindcss/line-clamp": "^0.4.0",
     "@types/google.maps": "^3.48.8",
+    "@types/lodash": "^4.14.182",
     "@vitejs/plugin-vue": "^2.3.1",
     "@vue/eslint-config-prettier": "^7.0.0",
     "@vue/test-utils": "^2.0.0-rc.20",
