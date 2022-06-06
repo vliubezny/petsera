@@ -4,6 +4,8 @@
 
 replicaCount: 1
 
+timestamp: ""
+
 image:
   repository: europe-north1-docker.pkg.dev/petsera/petsera/app
   pullPolicy: IfNotPresent

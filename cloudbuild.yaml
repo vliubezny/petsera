@@ -36,7 +36,7 @@ steps:
         /builder/helm.bash upgrade --install -f ./charts/prod-values.yaml \
           --set config.mapsAPIKey=$${MAPS_API_KEY} \
           --set config.db.password=$${DATABASE_PASS} \
-          --set image.pullPolicy=Always --set image.tag=latest \
+          --set image.pullPolicy=Always --set image.tag=latest --set timestamp=$(date +'%s') \
           petsera ./charts/petsera
     waitFor: ["migrate-db"]
 

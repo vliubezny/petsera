@@ -94,5 +94,5 @@ deploy:
 	helm upgrade --install -f ./charts/prod-values.yaml \
 		--set config.mapsAPIKey=$$(gcloud secrets versions access latest --secret=maps-api-key-prod) \
 		--set config.db.password=$$(gcloud secrets versions access latest --secret=petsera-db-password) \
-		--set image.pullPolicy=Always --set image.tag=$(TAG) \
+		--set image.pullPolicy=Always --set image.tag=$(TAG) --set timestamp=$$(date +'%s') \
 		petsera ./charts/petsera

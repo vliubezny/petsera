@@ -16,6 +16,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
+        {{- if .Values.timestamp }}
+        timestamp: "{{ .Values.timestamp }}"
+        {{- end }}
         {{- include "petsera.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
